@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>My Music</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f4f7;color:#18181b}body.dark{background:#121214;color:#f4f4f5}
+.app{min-height:100vh;display:flex;flex-direction:column}header{height:72px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid #ddd}
+.dark header{background:#1b1b1f;border-color:#333}.logo{font-size:25px;font-weight:800}.header-buttons{display:flex;gap:10px}.icon-btn{border:0;background:transparent;color:inherit;font-size:20px;padding:10px;border-radius:10px;cursor:pointer}.icon-btn:hover,.side button:hover{background:#eee}.dark .icon-btn:hover,.dark .side button:hover{background:#29292f}
+.layout{display:flex;flex:1}aside{width:230px;padding:22px 14px;background:#fff;border-right:1px solid #ddd}.dark aside{background:#1b1b1f;border-color:#333}
+.side button{display:block;width:100%;text-align:left;padding:13px 14px;border-radius:10px;font-size:15px;margin-bottom:5px;border:0;background:transparent;color:inherit;cursor:pointer}.side button.active{background:#eee}.dark .side button.active{background:#29292f}
+main{flex:1;padding:28px;max-width:1150px;margin:auto;width:100%;padding-bottom:120px}h1{margin-top:0}.search{display:flex;gap:10px;margin-bottom:20px}.search input{flex:1;padding:14px 16px;border:1px solid #ccc;border-radius:12px;font-size:16px;background:inherit;color:inherit}
+.primary{background:#111;color:#fff;border:0;padding:13px 18px;border-radius:10px;cursor:pointer}.dark .primary{background:#fff;color:#111}.status{margin:12px 0;color:#777}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:18px}.card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:15px}.dark .card{background:#1b1b1f;border-color:#333}
+.cover{height:180px;border-radius:10px;background:#ddd;overflow:hidden;display:flex;align-items:center;justify-content:center;color:white;font-size:45px;margin-bottom:12px}.cover img{width:100%;height:100%;object-fit:cover}
+.card h3{margin:5px 0;font-size:16px}.muted{color:#777;font-size:13px}.dark .muted{color:#aaa}.actions{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}.small{border:1px solid #ccc;background:transparent;color:inherit;padding:8px 10px;border-radius:8px;cursor:pointer}.small:hover{background:#eee}.dark .small:hover{background:#29292f}
+.empty{padding:40px;text-align:center;border:1px dashed #bbb;border-radius:14px}.player{position:fixed;bottom:0;left:0;right:0;min-height:86px;background:#fff;border-top:1px solid #ddd;display:flex;align-items:center;gap:18px;padding:12px 25px;z-index:5}
+.dark .player{background:#1b1b1f;border-color:#333}.now{min-width:220px}.controls{display:flex;gap:10px}.controls button{border:0;background:transparent;color:inherit;font-size:22px;cursor:pointer}.play{font-size:27px!important}.progress{flex:1}.progress input{width:100%}.volume{width:130px}.setting-row{display:flex;justify-content:space-between;align-items:center;padding:18px 0;border-bottom:1px solid #ddd}.dark .setting-row{border-color:#333}select{padding:8px;border-radius:8px;background:inherit;color:inherit}
+.page{display:none}.page.active{display:block}.link{color:inherit;text-decoration:underline;cursor:pointer}
+@media(max-width:700px){aside{width:75px}.side button span{display:none}main{padding:18px;padding-bottom:130px}.now{min-width:100px}.volume{display:none}.player{gap:8px;padding:10px}.cover{height:150px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="logo">🎵 My Music</div><div><button class="icon-btn" onclick="show('settings')">⚙️</button></div></header>
+<div class="layout">
+<aside class="side">
+<button class="active" onclick="show('home',this)">🏠 <span>Home</span></button>
+<button onclick="show('liked',this)">❤️ <span>Liked Songs</span></button>
+<button onclick="show('playlists',this)">📚 <span>Playlists</span></button>
+<button onclick="show('settings',this)">⚙️ <span>Settings</span></button>
+</aside>
+<main>
+<section id="home" class="page active"><h1>Find music</h1>
+<div class="search"><input id="search" placeholder="Search songs, artists or albums..." onkeydown="if(event.key==='Enter')searchMusic()"><button class="primary" onclick="searchMusic()">Search</button></div>
+<div id="searchStatus" class="status">Search a real music catalogue to add songs to your library.</div><div id="results"></div></section>
+<section id="liked" class="page"><h1>❤️ Liked Songs</h1><div id="likedList"></div></section>
+<section id="playlists" class="page"><h1>📚 Playlists</h1>
+<div class="search"><input id="newPlaylist" placeholder="New playlist name" onkeydown="if(event.key==='Enter')addPlaylist()"><button class="primary" onclick="addPlaylist()">Add Playlist</button></div><div id="playlistList"></div></section>
+<section id="settings" class="page"><h1>⚙️ Settings</h1>
+<div class="setting-row"><span>Appearance</span><select id="themeSelect" onchange="setTheme(this.value)"><option value="light">Light</option><option value="dark">Dark</option></select></div>
+<div class="setting-row"><span>Autoplay</span><button class="small" onclick="toggleSetting(this)">Off</button></div>
+<div class="setting-row"><span>Notifications</span><button class="small" onclick="toggleSetting(this)">Off</button></div>
+<div class="setting-row"><span>Ads</span><b>Ad-free interface</b></div>
+<div class="setting-row"><span>Search</span><b>Search as often as the catalogue allows</b></div>
+<div class="setting-row"><span>Music source</span><span class="muted">Public iTunes Search catalogue + permitted previews</span></div>
+<div class="setting-row"><button class="small" onclick="resetApp()">Reset local library and playlists</button></div>
+</section>
+</main></div>
+<div class="player">
+<div class="now"><b id="nowTitle">Nothing playing</b><div class="muted" id="nowArtist">Search and choose a song</div></div>
+<div class="controls"><button onclick="previous()">⏮</button><button class="play" onclick="togglePlay()" id="playBtn">▶</button><button onclick="next()">⏭</button></div>
+<div class="progress"><input type="range" min="0" max="100" value="0" id="progress"></div>
+<div class="volume">🔊 <input id="volume" type="range" min="0" max="100" value="80"></div>
+</div>
+</div>
+<audio id="audio"></audio>
+<script>
+const audio=document.getElementById('audio');
+let library=JSON.parse(localStorage.getItem('myMusicLibrary')||'[]');
+let playlists=JSON.parse(localStorage.getItem('myMusicPlaylists')||'[]');
+let queue=[],current=-1,playing=false;
+
+function save(){localStorage.setItem('myMusicLibrary',JSON.stringify(library));localStorage.setItem('myMusicPlaylists',JSON.stringify(playlists))}
+function show(page,btn){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ document.getElementById(page).classList.add('active');
+ document.querySelectorAll('.side button').forEach(x=>x.classList.remove('active'));
+ if(btn)btn.classList.add('active');
+ if(page==='liked')renderLiked(); if(page==='playlists')renderPlaylists();
+}
+async function searchMusic(){
+ const q=document.getElementById('search').value.trim(), box=document.getElementById('results'), status=document.getElementById('searchStatus');
+ if(!q){status.textContent='Type a song, artist or album name first.';return}
+ status.textContent='Searching...';box.innerHTML='';
+ try{
+  const url='https://itunes.apple.com/search?term='+encodeURIComponent(q)+'&country=PT&media=music&entity=song&limit=25';
+  const res=await fetch(url); if(!res.ok)throw new Error('Search failed');
+  const data=await res.json();
+  status.textContent=`Found ${data.resultCount} result(s).`;
+  box.innerHTML=data.results.map(resultCard).join('')||'<div class="empty">No results found.</div>';
+ }catch(e){status.textContent='Could not reach the music catalogue. Check your internet connection and try again.'}
+}
+function resultCard(s){
+ const id=String(s.trackId), inLib=library.some(x=>x.id===id);
+ const art=s.artworkUrl100?s.artworkUrl100.replace('100x100','300x300'):'';
+ return `<div class="card"><div class="cover">${art?`<img src="${art}" alt="">`:'♫'}</div>
+ <h3>${esc(s.trackName||'Unknown song')}</h3><div class="muted">${esc(s.artistName||'Unknown artist')}</div><div class="muted">${esc(s.collectionName||'')}</div>
+ <div class="actions"><button class="small" onclick='playExternal(${JSON.stringify(s).replace(/'/g,"&#39;")})'>▶ Preview</button>
+ <button class="small" onclick='addLibrary(${JSON.stringify(s).replace(/'/g,"&#39;")})'>${inLib?'✓ In Library':'＋ Add to Library'}</button></div></div>`;
+}
+function esc(x){return String(x||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function normalize(s){return {id:String(s.trackId),title:s.trackName||'Unknown',artist:s.artistName||'Unknown',album:s.collectionName||'',art:s.artworkUrl100||'',preview:s.previewUrl||'',url:s.trackViewUrl||''}}
+function addLibrary(s){
+ const x=normalize(s); if(library.some(a=>a.id===x.id))return;
+ library.push(x);save();searchMusic();
+}
+function removeLibrary(id){library=library.filter(x=>x.id!==id);playlists.forEach(p=>p.songs=p.songs.filter(x=>x!==id));save();renderLiked()}
+function renderLiked(){
+ const box=document.getElementById('likedList');
+ box.innerHTML=library.length?`<div class="grid">${library.map(localCard).join('')}</div>`:'<div class="empty">Your library is empty. Search for music and press “Add to Library”.</div>';
+}
+function localCard(s){return `<div class="card"><div class="cover">${s.art?`<img src="${s.art.replace('100x100','300x300')}" alt="">`:'♫'}</div><h3>${esc(s.title)}</h3><div class="muted">${esc(s.artist)}</div><div class="actions"><button class="small" onclick='playExternal(${JSON.stringify(s)})'>▶ Preview</button><button class="small" onclick="removeLibrary('${s.id}')">Remove</button><button class="small" onclick="choosePlaylist('${s.id}')">＋ Playlist</button></div></div>`}
+function choosePlaylist(id){if(!playlists.length){alert('Create a playlist first.');return}let names=playlists.map((p,i)=>`${i+1}. ${p.name}`).join('\\n');let n=prompt('Choose a playlist number:\\n'+names);let i=Number(n)-1;if(playlists[i]&&!playlists[i].songs.includes(id)){playlists[i].songs.push(id);save();alert('Added to '+playlists[i].name)}}
+function addPlaylist(){let n=document.getElementById('newPlaylist').value.trim();if(!n)return;playlists.push({name:n,songs:[]});document.getElementById('newPlaylist').value='';save();renderPlaylists()}
+function renderPlaylists(){
+ const box=document.getElementById('playlistList');
+ box.innerHTML=playlists.length?playlists.map((p,i)=>`<div class="card" style="margin-bottom:12px"><h3>📁 ${esc(p.name)}</h3><div class="muted">${p.songs.length} saved song(s)</div><div class="actions"><button class="small" onclick="openPlaylist(${i})">Open</button><button class="small" onclick="deletePlaylist(${i})">Delete</button></div></div>`).join(''):'<div class="empty">Create your first playlist above.</div>';
+}
+function openPlaylist(i){let p=playlists[i];let songs=p.songs.map(id=>library.find(s=>s.id===id)).filter(Boolean);document.getElementById('playlistList').innerHTML=`<div class="card"><h3>📁 ${esc(p.name)}</h3>${songs.length?`<div class="grid" style="margin-top:15px">${songs.map(localCard).join('')}</div>`:'<div class="empty">No songs in this playlist yet.</div>'}</div>`}
+function deletePlaylist(i){playlists.splice(i,1);save();renderPlaylists()}
+function playExternal(s){
+ const x=normalize(s); if(!x.preview){alert('This catalogue result does not provide a playable preview.');return}
+ queue=queue.length?queue:[x]; current=queue.findIndex(a=>a.id===x.id); if(current<0){queue.push(x);current=queue.length-1}
+ audio.src=x.preview;audio.play();playing=true;updatePlayer();
+}
+function updatePlayer(){let s=queue[current];if(!s)return;document.getElementById('nowTitle').textContent=s.title;document.getElementById('nowArtist').textContent=s.artist;document.getElementById('playBtn').textContent=playing?'⏸':'▶'}
+function togglePlay(){if(!audio.src){if(library[0])playExternal(library[0]);return}if(audio.paused){audio.play();playing=true}else{audio.pause();playing=false}updatePlayer()}
+function next(){if(!queue.length)return;current=(current+1)%queue.length;audio.src=queue[current].preview||'';audio.play();playing=true;updatePlayer()}
+function previous(){if(!queue.length)return;current=(current-1+queue.length)%queue.length;audio.src=queue[current].preview||'';audio.play();playing=true;updatePlayer()}
+audio.addEventListener('timeupdate',()=>{document.getElementById('progress').value=audio.duration?audio.currentTime/audio.duration*100:0});
+audio.addEventListener('ended',()=>{playing=false;updatePlayer()});
+document.getElementById('progress').addEventListener('input',e=>{if(audio.duration)audio.currentTime=audio.duration*e.target.value/100});
+document.getElementById('volume').addEventListener('input',e=>audio.volume=e.target.value/100);audio.volume=.8;
+function setTheme(v){document.body.classList.toggle('dark',v==='dark');localStorage.setItem('myMusicTheme',v)}
+function toggleSetting(b){b.textContent=b.textContent==='Off'?'On':'Off'}
+function resetApp(){if(confirm('Delete your saved library and playlists?')){localStorage.removeItem('myMusicLibrary');localStorage.removeItem('myMusicPlaylists');location.reload()}}
+let theme=localStorage.getItem('myMusicTheme')||'light';document.body.classList.toggle('dark',theme==='dark');document.getElementById('themeSelect').value=theme;
+</script>
+</body>
+</html>
